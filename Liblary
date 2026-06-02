@@ -1,20 +1,24 @@
 --[[
-    REXZ UI LIBRARY (ADVANCED EDITION)
+    REXZ UI LIBRARY (SIDEBAR & TAB EDITION)
     Features: Responsive Drag, Auto-Canvas Scaling, Icon Injection, 
-              Dynamic Search Bar Filter, Floating Toggle Button (Open/Close)
+              Dynamic Search Bar Filter, Floating Toggle Button, Sidebar Tab System
     Language Lock: Indonesian Professional
 --]]
 
 local RexzLibrary = {}
 RexzLibrary.__index = RexzLibrary
 
+local TabClass = {}
+TabClass.__index = TabClass
+
 function RexzLibrary.new(hubName, title)
     local self = setmetatable({}, RexzLibrary)
-    self.Elements = {} -- Menyimpan data tombol untuk fitur pencarian
+    self.Tabs = {}
+    self.CurrentTab = nil
     
     -- Main ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "RexzPremiumUi_" .. math.random(1000, 9999)
+    ScreenGui.Name = "RexzSidebarUi_" .. math.random(1000, 9999)
     ScreenGui.Parent = game:GetService("CoreGui")
     ScreenGui.ResetOnSpawn = false
     self.ScreenGui = ScreenGui
@@ -25,15 +29,15 @@ function RexzLibrary.new(hubName, title)
     local ToggleBtn = Instance.new("TextButton")
     ToggleBtn.Name = "UiToggleBtn"
     ToggleBtn.Size = UDim2.new(0, 45, 0, 45)
-    ToggleBtn.Position = UDim2.new(0, 15, 0, 15) -- Pojok kiri atas layar mobile
+    ToggleBtn.Position = UDim2.new(0, 15, 0, 15)
     ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
     ToggleBtn.Text = ""
     ToggleBtn.Active = true
-    ToggleBtn.Draggable = true -- Bisa digeser agar tidak mengganggu gameplay
+    ToggleBtn.Draggable = true
     ToggleBtn.Parent = ScreenGui
 
     local ToggleCorner = Instance.new("UICorner")
-    ToggleCorner.CornerRadius = UDim.new(0, 50) -- Membuat bentuk lingkaran sempurna
+    ToggleCorner.CornerRadius = UDim.new(0, 50)
     ToggleCorner.Parent = ToggleBtn
 
     local ToggleStroke = Instance.new("UIStroke")
@@ -46,7 +50,7 @@ function RexzLibrary.new(hubName, title)
     ToggleIcon.Size = UDim2.new(0, 24, 0, 24)
     ToggleIcon.Position = UDim2.new(0.5, -12, 0.5, -12)
     ToggleIcon.BackgroundTransparency = 1
-    ToggleIcon.Image = "rbxassetid://10734950309" -- Ikon Utama 🧪
+    ToggleIcon.Image = "rbxassetid://10734950309"
     ToggleIcon.ImageColor3 = Color3.fromRGB(160, 110, 255)
     ToggleIcon.Parent = ToggleBtn
 
@@ -55,8 +59,8 @@ function RexzLibrary.new(hubName, title)
     -- =======================================================
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainContainer"
-    MainFrame.Size = UDim2.new(0, 360, 0, 290) -- Ditambah tinggi untuk Search Bar
-    MainFrame.Position = UDim2.new(0.5, -180, 0.5, -145)
+    MainFrame.Size = UDim2.new(0, 480, 0, 300) -- Diperlebar untuk space Sidebar (Kiri)
+    MainFrame.Position = UDim2.new(0.5, -240, 0.5, -150)
     MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
@@ -74,7 +78,6 @@ function RexzLibrary.new(hubName, title)
     MainStroke.Thickness = 1.2
     MainStroke.Parent = MainFrame
 
-    -- Logic Keterhubungan Toggle Klik
     ToggleBtn.MouseButton1Click:Connect(function()
         MainFrame.Visible = not MainFrame.Visible
     end)
@@ -120,7 +123,6 @@ function RexzLibrary.new(hubName, title)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = TopBar
 
-    -- Close Engine Entirely (Menghapus UI Total)
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Name = "ExitAction"
     CloseBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -137,12 +139,29 @@ function RexzLibrary.new(hubName, title)
     end)
 
     -- =======================================================
-    -- SEARCH BAR COMPONENT
+    -- SIDEBAR NAVIGATION CONTAINER (KIRI)
+    -- =======================================================
+    local Sidebar = Instance.new("ScrollingFrame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 130, 1, -48)
+    Sidebar.Position = UDim2.new(0, 10, 0, 48)
+    Sidebar.BackgroundTransparency = 1
+    Sidebar.BorderSizePixel = 0
+    Sidebar.ScrollBarThickness = 0
+    Sidebar.Parent = MainFrame
+
+    local SidebarLayout = Instance.new("UIListLayout")
+    SidebarLayout.Parent = Sidebar
+    SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SidebarLayout.Padding = UDim.new(0, 4)
+
+    -- =======================================================
+    -- SEARCH BAR COMPONENT (KANAN ATAS)
     -- =======================================================
     local SearchFrame = Instance.new("Frame")
     SearchFrame.Name = "SearchBarContainer"
-    SearchFrame.Size = UDim2.new(1, -20, 0, 32)
-    SearchFrame.Position = UDim2.new(0, 10, 0, 46)
+    SearchFrame.Size = UDim2.new(1, -165, 0, 32)
+    SearchFrame.Position = UDim2.new(0, 150, 0, 48)
     SearchFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
     SearchFrame.BorderSizePixel = 0
     SearchFrame.Parent = MainFrame
@@ -161,7 +180,7 @@ function RexzLibrary.new(hubName, title)
     SearchIcon.Size = UDim2.new(0, 14, 0, 14)
     SearchIcon.Position = UDim2.new(0, 10, 0.5, -7)
     SearchIcon.BackgroundTransparency = 1
-    SearchIcon.Image = "rbxassetid://10723344432" -- Kaca Pembesar / Search Icon 🤓
+    SearchIcon.Image = "rbxassetid://10723344432"
     SearchIcon.ImageColor3 = Color3.fromRGB(100, 100, 120)
     SearchIcon.Parent = SearchFrame
 
@@ -171,7 +190,7 @@ function RexzLibrary.new(hubName, title)
     SearchInput.Position = UDim2.new(0, 30, 0, 0)
     SearchInput.BackgroundTransparency = 1
     SearchInput.Text = ""
-    SearchInput.PlaceholderText = "Cari fitur / command..."
+    SearchInput.PlaceholderText = "Cari fitur di tab ini..."
     SearchInput.PlaceholderColor3 = Color3.fromRGB(90, 90, 105)
     SearchInput.TextColor3 = Color3.fromRGB(220, 220, 230)
     SearchInput.TextSize = 12
@@ -180,19 +199,94 @@ function RexzLibrary.new(hubName, title)
     SearchInput.Parent = SearchFrame
 
     -- =======================================================
-    -- SCROLLING CONTAINER CONTENT
+    -- TABS CONTAINER HOLDER (KANAN BAWAH)
     -- =======================================================
+    local ContentHolder = Instance.new("Frame")
+    ContentHolder.Name = "ContentHolder"
+    ContentHolder.Size = UDim2.new(1, -165, 1, -96)
+    ContentHolder.Position = UDim2.new(0, 150, 0, 88)
+    ContentHolder.BackgroundTransparency = 1
+    ContentHolder.Parent = MainFrame
+    self.ContentHolder = ContentHolder
+
+    -- REALTIME GLOBAL SEARCH ENGINE
+    SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
+        local query = string.lower(SearchInput.Text)
+        if self.CurrentTab then
+            for _, item in ipairs(self.CurrentTab.Elements) do
+                if query == "" then
+                    item.Instance.Visible = true
+                else
+                    if string.find(string.lower(item.Name), query) then
+                        item.Instance.Visible = true
+                    else
+                        item.Instance.Visible = false
+                    end
+                end
+            end
+        end
+    end)
+
+    return self
+end
+
+-- =======================================================
+-- METHOD: CREATE TAB (Membuat Tab Sidebar Baru) 🤓
+-- =======================================================
+function RexzLibrary:CreateTab(tabName, iconId)
+    local tab = setmetatable({}, TabClass)
+    tab.Elements = {}
+    
+    -- Pembuat Tombol Navigasi di Sidebar
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = tabName .. "_TabBtn"
+    TabButton.Size = UDim2.new(1, -5, 0, 34)
+    TabButton.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+    TabButton.Text = ""
+    TabButton.BorderSizePixel = 0
+    TabButton.Parent = self.MainFrame.Sidebar
+
+    local TabBtnCorner = Instance.new("UICorner")
+    TabBtnCorner.CornerRadius = UDim.new(0, 6)
+    TabBtnCorner.Parent = TabButton
+
+    if iconId then
+        local TabIcon = Instance.new("ImageLabel")
+        TabIcon.Name = "TabIcon"
+        TabIcon.Size = UDim2.new(0, 16, 0, 16)
+        TabIcon.Position = UDim2.new(0, 10, 0.5, -8)
+        TabIcon.BackgroundTransparency = 1
+        TabIcon.Image = "rbxassetid://" .. tostring(iconId)
+        TabIcon.ImageColor3 = Color3.fromRGB(150, 150, 160)
+        TabIcon.Parent = TabButton
+        tab.Icon = TabIcon
+    end
+
+    local TabLabel = Instance.new("TextLabel")
+    TabLabel.Name = "TabLabel"
+    TabLabel.Size = UDim2.new(1, iconId and -36 or -16, 1, 0)
+    TabLabel.Position = UDim2.new(0, iconId and 32 or 12, 0, 0)
+    TabLabel.BackgroundTransparency = 1
+    TabLabel.Text = tabName
+    TabLabel.TextColor3 = Color3.fromRGB(160, 160, 170)
+    TabLabel.TextSize = 12
+    TabLabel.Font = Enum.Font.GothamMedium
+    TabLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TabLabel.Parent = TabButton
+    tab.Label = TabLabel
+
+    -- Pembuat Container Scrolling Frame Konten Tab (Kanan)
     local ScrollBox = Instance.new("ScrollingFrame")
-    ScrollBox.Name = "ScrollContainer"
-    ScrollBox.Size = UDim2.new(1, -20, 1, -94) -- Disesuaikan letaknya di bawah search bar
-    ScrollBox.Position = UDim2.new(0, 10, 0, 86)
+    ScrollBox.Name = tabName .. "_ContentScroll"
+    ScrollBox.Size = UDim2.new(1, 0, 1, 0)
     ScrollBox.BackgroundTransparency = 1
     ScrollBox.BorderSizePixel = 0
     ScrollBox.ScrollBarThickness = 3
     ScrollBox.ScrollBarImageColor3 = Color3.fromRGB(50, 50, 60)
     ScrollBox.CanvasSize = UDim2.new(0, 0, 0, 0)
-    ScrollBox.Parent = MainFrame
-    self.ScrollBox = ScrollBox
+    ScrollBox.Visible = false
+    ScrollBox.Parent = self.ContentHolder
+    tab.ScrollBox = ScrollBox
 
     local ListLayout = Instance.new("UIListLayout")
     ListLayout.Parent = ScrollBox
@@ -203,27 +297,38 @@ function RexzLibrary.new(hubName, title)
         ScrollBox.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 10)
     end)
 
-    -- LOGIKA FILTER MESIN PENCARIAN
-    SearchInput:GetPropertyChangedSignal("Text"):Connect(function()
-        local query = string.lower(SearchInput.Text)
-        for _, item in ipairs(self.Elements) do
-            if query == "" then
-                item.Instance.Visible = true
-            else
-                if string.find(string.lower(item.Name), query) then
-                    item.Instance.Visible = true
-                else
-                    item.Instance.Visible = false
-                end
-            end
+    -- Fungsi Aktivasi Ganti Tab 😈
+    local function ActivateTab()
+        for _, t in ipairs(self.Tabs) do
+            t.ScrollBox.Visible = false
+            t.BackgroundColor.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+            t.Label.TextColor3 = Color3.fromRGB(160, 160, 170)
+            if t.Icon then t.Icon.ImageColor3 = Color3.fromRGB(150, 150, 160) end
         end
-    end)
+        scrollBox.Visible = true
+        TabButton.BackgroundColor3 = Color3.fromRGB(32, 30, 42)
+        TabLabel.TextColor3 = Color3.fromRGB(160, 110, 255) -- Warna khas lavender ungu saat aktif
+        if tab.Icon then tab.Icon.ImageColor3 = Color3.fromRGB(160, 110, 255) end
+        self.CurrentTab = tab
+    end
 
-    return self
+    TabButton.MouseButton1Click:Connect(ActivateTab)
+    
+    tab.BackgroundColor = TabButton
+    table.insert(self.Tabs, tab)
+
+    -- Auto aktifkan tab pertama yang dibuat
+    if #self.Tabs == 1 then
+        ActivateTab()
+    end
+
+    return tab
 end
 
--- Method Tambah Tombol dengan Pendaftaran ke Engine Search 😈
-function RexzLibrary:AddButton(text, iconId, callback)
+-- =======================================================
+-- METHOD: ADD BUTTON (Membuat Tombol di Dalam Tab Spesifik) 😡
+-- =======================================================
+function TabClass:AddButton(text, iconId, callback)
     local action = callback or function() end
     
     local ButtonElement = Instance.new("TextButton")
@@ -274,7 +379,6 @@ function RexzLibrary:AddButton(text, iconId, callback)
         pcall(action)
     end)
 
-    -- Daftarkan element ke table agar bisa di-search secara real-time
     table.insert(self.Elements, {
         Name = text,
         Instance = ButtonElement
