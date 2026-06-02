@@ -5,6 +5,7 @@
 --               Auto-Persistent Credit Tab (Always Bottom), Custom Notification Toast System
 --     Added:    Dynamic Toggle (Switch On/Off) Component with Smooth Tweens & Custom "R" Indicator
 --     Language Lock: Indonesian Professional
+--     By Rexz
 -- ]]
 
 local RexzLibrary = {}
