@@ -239,11 +239,10 @@ function RexzLibrary.new(dummyHubName, title)
     end)
 
     -- =======================================================
-    -- AUTO-INJECT SYSTEM: TAB CREDIT (WITH ICONS) 😈
+    -- AUTO-INJECT SYSTEM: TAB CREDIT (FIXED RENDERING) 😈
     -- =======================================================
     task.spawn(function()
         local CreditTab = self:CreateTab("Credit", 10723351930)
-        CreditTab.BackgroundColor.LayoutOrder = 9999
         
         CreditTab:AddButton("Owner: RexzLock", 10734950309, function()
             setclipboard("RexzLock")
@@ -330,7 +329,7 @@ function RexzLibrary:Notify(notifTitle, notifText, duration)
     end)
 end
 
--- METHOD: CREATE TAB
+-- METHOD: CREATE TAB (Fixed LayoutOrder & Icon Injection)
 function RexzLibrary:CreateTab(tabName, iconId)
     local tab = setmetatable({}, TabClass)
     tab.Elements = {}
@@ -341,7 +340,8 @@ function RexzLibrary:CreateTab(tabName, iconId)
     TabButton.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
     TabButton.Text = ""
     TabButton.BorderSizePixel = 0
-    TabButton.LayoutOrder = #self.Tabs + 1
+    -- Perbaikan Utama: Jika nama tab adalah Credit, otomatis pasang urutan paling bawah (9999) sejak awal dibuat
+    TabButton.LayoutOrder = (tabName == "Credit") and 9999 or (#self.Tabs + 1)
     TabButton.Parent = self.MainFrame.Sidebar
 
     local TabBtnCorner = Instance.new("UICorner")
@@ -478,9 +478,7 @@ function TabClass:AddButton(text, iconId, callback)
     })
 end
 
--- =======================================================
--- METHOD: ADD TOGGLE (Sakelar On/Off dengan Logo "R" & Icon) 😈
--- =======================================================
+-- METHOD: ADD TOGGLE
 function TabClass:AddToggle(text, iconId, defaultState, callback)
     local state = defaultState or false
     local action = callback or function() end
@@ -503,7 +501,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
     ToggleStroke.Thickness = 1
     ToggleStroke.Parent = ToggleElement
 
-    -- 1. ICON INJECTION (Sisi Kiri Elemen)
     if iconId then
         local ToggleIcon = Instance.new("ImageLabel")
         ToggleIcon.Name = "ToggleIcon"
@@ -515,7 +512,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
         ToggleIcon.Parent = ToggleElement
     end
 
-    -- 2. TEXT LABEL (Posisi menyesuaikan ada/tidaknya Icon)
     local Label = Instance.new("TextLabel")
     Label.Name = "ToggleLabel"
     Label.Size = UDim2.new(1, iconId and -76 or -56, 1, 0)
@@ -528,7 +524,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = ToggleElement
 
-    -- 3. LOGO INDICATOR "R" HOLDER (Kanan)
     local IndicatorFrame = Instance.new("Frame")
     IndicatorFrame.Name = "IndicatorFrame"
     IndicatorFrame.Size = UDim2.new(0, 24, 0, 24)
@@ -546,7 +541,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
     IndicatorStroke.Thickness = 1.2
     IndicatorStroke.Parent = IndicatorFrame
 
-    -- Text Label berbentuk huruf "R"
     local RLogo = Instance.new("TextLabel")
     RLogo.Name = "RLogo"
     RLogo.Size = UDim2.new(1, 0, 1, 0)
@@ -559,7 +553,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
     RLogo.TextYAlignment = Enum.TextYAlignment.Center
     RLogo.Parent = IndicatorFrame
 
-    -- Fungsi Animasi Transisi untuk Efek Logo "R"
     local function UpdateToggleVisual(animate)
         local targetBg = state and Color3.fromRGB(35, 30, 50) or Color3.fromRGB(20, 20, 25)
         local targetAccent = state and Color3.fromRGB(160, 110, 255) or Color3.fromRGB(45, 45, 55)
@@ -576,7 +569,6 @@ function TabClass:AddToggle(text, iconId, defaultState, callback)
         end
     end
 
-    -- Inisialisasi visual awal tanpa transisi animasi
     UpdateToggleVisual(false)
 
     ToggleElement.MouseButton1Click:Connect(function()
